@@ -1,0 +1,75 @@
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.PriorityQueue;
+
+public class HuffmanCoding {
+
+    // Simple Node class
+    static class Node {
+        char ch;
+        int freq;
+        Node left, right;
+
+        Node(char ch, int freq) {
+            this.ch = ch;
+            this.freq = freq;
+        }
+
+        Node(int freq, Node left, Node right) {
+            this.freq = freq;
+            this.left = left;
+            this.right = right;
+        }
+    }
+
+    public static void main(String[] args) {
+        String text = "hello huffman";
+
+        // 1. Count character frequencies
+        Map<Character, Integer> counts = new HashMap<>();
+        for (char c : text.toCharArray()) {
+            counts.put(c, counts.getOrDefault(c, 0) + 1);
+        }
+
+        // 2. Put nodes in a Min-Heap (automatically sorts smallest frequency first)
+        PriorityQueue<Node> heap = new PriorityQueue<>(Comparator.comparingInt(n -> n.freq));
+        for (var entry : counts.entrySet()) {
+            heap.add(new Node(entry.getKey(), entry.getValue()));
+        }
+
+        // 3. GREEDY STEP: Merge the 2 smallest nodes repeatedly
+        while (heap.size() > 1) {
+            Node smallest1 = heap.poll();
+            Node smallest2 = heap.poll();
+
+            Node merged = new Node(smallest1.freq + smallest2.freq, smallest1, smallest2);
+            heap.add(merged);
+        }
+
+        // 4. Generate codes by walking the tree (Left = '0', Right = '1')
+        Map<Character, String> codes = new HashMap<>();
+        printAndStoreCodes(heap.peek(), "", codes);
+
+        // 5. Print encoded binary string
+        System.out.print("\nEncoded Text: ");
+        for (char c : text.toCharArray()) {
+            System.out.print(codes.get(c));
+        }
+    }
+
+    // Quick recursive function to collect 0s and 1s
+    static void printAndStoreCodes(Node node, String code, Map<Character, String> codes) {
+        if (node == null) return;
+
+        // If it's a leaf node (has a character)
+        if (node.left == null && node.right == null) {
+            System.out.println("'" + node.ch + "' : " + code);
+            codes.put(node.ch, code);
+            return;
+        }
+
+        printAndStoreCodes(node.left, code + "0", codes);
+        printAndStoreCodes(node.right, code + "1", codes);
+    }
+}
